@@ -11,7 +11,7 @@ app.set('view engine','ejs');
 // http://localhost:8080/
 //Example of building dashboard with DC.js, d3.js and crossfilter.js
 app.get('/', function(req, res) {
-    res.render('pages/index12');
+    res.render('pages/index');
 });
 // http://localhost:8080/cross
 //example of crossfilter
