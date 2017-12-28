@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Crossfilter Page Template</title>
+        <link rel="stylesheet" href="/css/style.css">
+        <!-- <script type="text/javascript" src="https://d3js.org/d3.v4.min.js"></script> -->
+       <script type="text/javascript" src="/crossfilter-master/crossfilter.js"></script>
+         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.js"></script>
+         <script type="text/javascript" src="/dc/dc.js"></script>
+        <!--<script type="text/javascript" src="/d3/d3.min.js"></script>-->
+</head>
+    <body>
+ 		<script type="text/javascript">
+		var data = [
+ 		 {date: "2011-11-14T16:17:54Z", quantity: 2, total: 190, tip: 100, type: "tab"},
+  		{date: "2011-11-14T16:20:19Z", quantity: 2, total: 190, tip: 100, type: "tab"},
+  		{date: "2011-11-14T16:28:54Z", quantity: 1, total: 300, tip: 200, type: "visa"},
+  		{date: "2011-11-14T16:30:43Z", quantity: 2, total: 90, tip: 0, type: "tab"},
+  		{date: "2011-11-14T16:48:46Z", quantity: 2, total: 90, tip: 0, type: "tab"},
+  		{date: "2011-11-14T16:53:41Z", quantity: 2, total: 90, tip: 0, type: "tab"},
+  		{date: "2011-11-14T16:54:06Z", quantity: 1, total: 100, tip: 0, type: "cash"},
+  		{date: "2011-11-14T16:58:03Z", quantity: 2, total: 90, tip: 0, type: "tab"},
+  		{date: "2011-11-14T17:07:21Z", quantity: 2, total: 90, tip: 0, type: "tab"},
+  		{date: "2011-11-14T17:22:59Z", quantity: 2, total: 90, tip: 0, type: "tab"},
+  		{date: "2011-11-14T17:25:45Z", quantity: 2, total: 200, tip: 0, type: "cash"},
+  		{date: "2011-11-14T17:29:52Z", quantity: 1, total: 200, tip: 100, type: "visa"}
+		]; 	
+	var ndx = crossfilter(data);
+	var totalDim = ndx.dimension(function(d) {return d.total;});
+	//var total_90 = totalDim.filterExact(90);
+	
+	//Function to print filter
+	function print_filter(filter){
+	var f=eval(filter);
+	if (typeof(f.length) != "undefined") {}else{}
+	if (typeof(f.top) != "undefined") {f=f.top(Infinity);}else{}
+	if (typeof(f.dimension) != "undefined") {f=f.dimension(function(d) { return "";}).top(Infinity);}else{}
+	console.log(filter+"("+f.length+") = "+JSON.stringify(f).replace("[","[\n\t").replace(/}\,/g,"},\n\t").replace("]","\n]"));
+	
+	} 
+
+	//print_filter(total_90);
+	//var total_90_101 = totalDim.filterRange([90,101]);
+	//print_filter(total_90_101);
+	//var total_3 = totalDim.filterFunction(function(d) { if (d%3 === 0) {return d;} });
+	//print_filter(total_3);
+
+	var typeDim = ndx.dimension(function(d){return d.type;});
+	var visa_filter = typeDim.filter("cash");
+	print_filter("visa_filter");
+
+	var total = typeDim.group().reduceSum( function(d) {return d.total;} );
+	print_filter("total");
+	var cash_total = ndx.groupAll().reduceSum(function(d) {return d.total;}).value();
+	console.log("cash_total="+cash_total);
+	typeDim.filterAll();
+	var cash_and_visa_filter = typeDim.filter(function(d){if (d==="cash" || d==="visa") {return d;}});
+	print_filter("cash_and_visa_filter");
+  </script>
+    </body>
+</html>
