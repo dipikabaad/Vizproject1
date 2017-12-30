@@ -13,10 +13,10 @@ app.set('view engine','ejs');
 app.get('/', function(req, res) {
     res.render('pages/index');
 });
-// http://localhost:8080/cross
+// http://localhost:8080/index_life
 //example of crossfilter
-app.get('/cross', function(req, res) {
-    res.render('pages/index1');
+app.get('/life_exp_spending', function(req, res) {
+    res.render('pages/index_life');
 });
 //example of D3
 //http://localhost:8080/d3eg

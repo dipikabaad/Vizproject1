@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Visualization Project1</title>
+        <link rel="stylesheet" href="/css/styletimeline.css">
+        <script type="text/javascript" src="https://d3js.org/d3.v3.min.js"></script>
+       <script type="text/javascript" src="/crossfilter-master/crossfilter.js"></script>
+         <!--<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.js"></script>-->
+         <!--<script type="text/javascript" src="/dc/dc.js"></script>-->
+        <!--<script type="text/javascript" src="/d3/d3.min.js"></script>-->
+</head>
+    <body>
+ 	<div class="Container">
+	<div id='cssmenu'>
+	<ul>
+   <li><a href='http://localhost:8080/'><span>Home</span></a></li>
+   <li class='active has-sub'><a href='#'><span>About Project</span></a>
+      <ul>
+         <li class='has-sub'><a href='#'><span>Detailed Project Description</span></a>
+            <ul>
+               <li><a href='http://localhost:8080/life_exp_spending'><span>Life Expectancy</span></a></li>
+               <li class='last'><a href='#'><span>Healthy Habits</span></a></li>
+            </ul>
+         </li>
+         <li class='has-sub'><a href='#'><span>Spending on Medicare</span></a>
+            <ul>
+               <li><a href='#'><span>Spending by Countries</span></a></li>
+               <li class='last'><a href='#'><span>Add new section</span></a></li>
+            </ul>
+         </li>
+      </ul>
+   </li>
+   <li><a href='#'><span>Some more exploration</span></a></li>
+   <li class='last'><a href='#'><span>Conclusion</span></a></li>
+	</ul>
+	</div>
+	<div class="GraphContainer">
+	<div class="Graph1">
+	<label class="guideline">
+  Show Guideline & Curtain
+  <input type="checkbox" id="show_guideline" />
+</label>
+<svg></svg>
+	</div>
+	</div>
+	</div>
+	<script type="text/javascript">
+	var margin = {top: 80, right: 80, bottom: 80, left: 80},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+	
+	var parse = d3.time.format("%Y").parse;
+
+// Scales and axes. Note the inverted domain for the y-scale: bigger is up!
+var x = d3.scale.linear().range([0, width]),
+    y = d3.scale.linear().range([height, 0]),
+    xAxis = d3.svg.axis().scale(x).tickSize(-height).tickSubdivide(true),
+    yAxis = d3.svg.axis().scale(y).ticks(4).orient("right");
+
+// An area generator, for the light fill.
+var area = d3.svg.area()
+    .interpolate("monotone")
+    .x(function(d) { return x(d.time); })
+    .y0(height)
+    .y1(function(d) { return y(d.life_expect_birth); });
+
+// A line generator, for the dark stroke.
+var line = d3.svg.line()
+    .interpolate("monotone")
+    .x(function(d) { return x(d.time); })
+    .y(function(d) { return y(d.life_expect_birth); });
+
+d3.csv("modified_file1.csv", type, function(error, data) {
+
+  // Filter to one country; the S&P 500.
+  var values = data.filter(function(d) {
+    return d.location == "AUS";;
+  });
+
+  var msft = data.filter(function(d) {
+    return d.location == "USA";
+  });
+
+  var ibm = data.filter(function(d) {
+    return d.location == 'AUT';
+  });
+
+  // Compute the minimum and maximum date, and the maximum life_expect_birth.
+  x.domain([1971, 2014]).nice();
+  y.domain([0, d3.max(values, function(d) { return d.life_expect_birth; })]).nice();
+
+  // Add an SVG element with the desired dimensions and margin.
+  var svg = d3.select("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+
+  // Add the clip path.
+  svg.append("clipPath")
+      .attr("id", "clip")
+    .append("rect")
+      .attr("width", width)
+      .attr("height", height);
+
+  // Add the x-axis.
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis);
+
+  // Add the y-axis.
+  svg.append("g")
+      .attr("class", "y axis")
+      .attr("transform", "translate(" + width + ",0)")
+      .call(yAxis);
+
+
+  var colors = d3.scale.category10();
+  svg.selectAll('.line')
+    .data([values, msft, ibm])
+    .enter()
+      .append('path')
+        .attr('class', 'line')
+        .style('stroke', function(d) {
+          return colors(Math.random() * 50);
+        })
+        .attr('clip-path', 'url(#clip)')
+        .attr('d', function(d) {
+          return line(d);
+        })
+
+  /* Add 'curtain' rectangle to hide entire graph */
+  var curtain = svg.append('rect')
+    .attr('x', -1 * width)
+    .attr('y', -1 * height)
+    .attr('height', height)
+    .attr('width', width)
+    .attr('class', 'curtain')
+    .attr('transform', 'rotate(180)')
+    .style('fill', '#ffffff')
+
+  /* Optionally add a guideline */
+  var guideline = svg.append('line')
+    .attr('stroke', '#333')
+    .attr('stroke-width', 0)
+    .attr('class', 'guide')
+    .attr('x1', 1)
+    .attr('y1', 1)
+    .attr('x2', 1)
+    .attr('y2', height)
+
+  /* Create a shared transition for anything we're animating */
+  var t = svg.transition()
+    .delay(750)
+    .duration(6000)
+    .ease('linear')
+    .each('end', function() {
+      d3.select('line.guide')
+        .transition()
+        .style('opacity', 0)
+        .remove()
+    });
+
+  t.select('rect.curtain')
+    .attr('width', 0);
+  t.select('line.guide')
+    .attr('transform', 'translate(' + width + ', 0)')
+
+  d3.select("#show_guideline").on("change", function(e) {
+    guideline.attr('stroke-width', this.checked ? 1 : 0);
+    curtain.attr("opacity", this.checked ? 0.75 : 1);
+  })
+
+});
+
+// Parse dates and numbers. We assume values are sorted by date.
+function type(d) {
+  d.time = d.time;
+  d.life_expect_birth = +d.life_expect_birth;
+  return d;
+}
+	
+	</script>
+    </body>
+</html>
